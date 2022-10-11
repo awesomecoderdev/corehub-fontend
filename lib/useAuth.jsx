@@ -1,7 +1,7 @@
-import useSWR from 'swr'
-import axios from './api'
-import {useRouter} from 'next/router'
 import {useEffect, useState} from 'react'
+import useSWR from 'swr'
+import request from './request'
+import {useRouter} from 'next/router'
 
 export default function useAuth({middleware} = {}) {
     const router = useRouter()
@@ -18,17 +18,15 @@ export default function useAuth({middleware} = {}) {
     })
 
     const {data: user, error, mutate} = useSWR('/user',
-        () => axios.get('/user').then(response => response.data.data)
+        () => request.get('/user').then(response => response.data.data)
     )
 
-    const csrf = () => axios.get('/sanctum/csrf-cookie')
+    const csrf = () => request.get('/sanctum/csrf-cookie')
 
     const login = async ({setErrors, ...props}) => {
         setErrors([])
-
         await csrf()
-
-        axios
+        request
             .post('/login', props)
             .then(() => mutate() && router.push('/'))
             .catch(error => {
@@ -39,7 +37,7 @@ export default function useAuth({middleware} = {}) {
     }
 
     const logout = async () => {
-        await axios.post('/logout')
+        await request.post('/logout')
 
         mutate(null)
 
